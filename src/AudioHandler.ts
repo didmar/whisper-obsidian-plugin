@@ -98,7 +98,13 @@ export class AudioHandler {
 					)?.editor;
 				if (editor) {
 					const cursorPosition = editor.getCursor();
-					editor.replaceRange(response.data.text, cursorPosition);
+					// Paste the transcription in the way that will help later improve it:
+					// add the link to the audio file that we transcribed from,
+					// and clear mark the text as a transcription using html tags.
+					editor.replaceRange(
+						`![[${audioFilePath}]]\n<span class="whisper-transcription">${response.data.text}</span>\n`,
+						cursorPosition
+					);
 
 					// Move the cursor to the end of the inserted text
 					const newPosition = {
