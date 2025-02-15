@@ -74,6 +74,12 @@ export class AudioHandler {
 				}
 			);
 
+			// Clean up the transcribed text by removing leading/trailing spaces from each line
+			const cleanedText = response.data.text
+				.split("\n")
+				.map((line: string) => line.trim())
+				.join("\n");
+
 			// Determine if a new file should be created
 			const activeView =
 				this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
@@ -83,7 +89,7 @@ export class AudioHandler {
 			if (shouldCreateNewFile) {
 				await this.plugin.app.vault.create(
 					noteFilePath,
-					`![[${audioFilePath}]]\n${response.data.text}`
+					`![[${audioFilePath}]]\n${cleanedText}`
 				);
 				await this.plugin.app.workspace.openLinkText(
 					noteFilePath,
@@ -102,14 +108,14 @@ export class AudioHandler {
 					// add the link to the audio file that we transcribed from,
 					// and clear mark the text as a transcription using html tags.
 					editor.replaceRange(
-						`![[${audioFilePath}]]\n<span class="whisper-transcription">${response.data.text}</span>\n`,
+						`![[${audioFilePath}]]\n<span class="whisper-transcription">\n${cleanedText}\n</span>\n`,
 						cursorPosition
 					);
 
 					// Move the cursor to the end of the inserted text
 					const newPosition = {
 						line: cursorPosition.line,
-						ch: cursorPosition.ch + response.data.text.length,
+						ch: cursorPosition.ch + cleanedText.length,
 					};
 					editor.setCursor(newPosition);
 				}
